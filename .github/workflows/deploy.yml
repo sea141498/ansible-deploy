@@ -1,0 +1,59 @@
+name: Ansible Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo 4（主控）
+        uses: actions/checkout@v3
+
+      - name: Checkout Repo 1（認證）
+        uses: actions/checkout@v3
+        with:
+          repository: sea141498/ansible-credentials
+          token: ${{ secrets.GH_TOKEN }}
+          path: credentials
+
+      - name: Checkout Repo 2（Playbook）
+        uses: actions/checkout@v3
+        with:
+          repository: sea141498/ansible-playbooks
+          token: ${{ secrets.GH_TOKEN }}
+          path: playbooks
+
+      - name: Checkout Repo 3（Artifacts）
+        uses: actions/checkout@v3
+        with:
+          repository: sea141498/ansible-artifacts
+          token: ${{ secrets.GH_TOKEN }}
+          path: artifacts
+
+      - name: 安裝 Ansible
+        run: pip install ansible
+
+      - name: 讀取 server list
+        run: |
+          echo "這次要部署的 server："
+          cat execute_ansible_server_list
+
+      - name: 設定 SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/ansible_key
+          chmod 600 ~/.ssh/ansible_key
+          ssh-keygen -y -f ~/.ssh/ansible_key > ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
+
+      - name: 執行 Ansible Playbook
+        run: |
+          ansible-playbook \
+            -i credentials/hosts.ini \
+            playbooks/deploy.yml \
+            -e "artifacts_path=${{ github.workspace }}/artifacts" \
+            -e "server_config_path=${{ github.workspace }}/server_configs/server_A"

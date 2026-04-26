@@ -1,0 +1,4 @@
+server_name: server_A
+environment: production
+memory_limit: 4096
+region: taipei

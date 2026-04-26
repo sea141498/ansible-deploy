@@ -1,0 +1,4 @@
+server_name: server_C
+environment: development
+memory_limit: 1024
+region: taichung

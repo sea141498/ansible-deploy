@@ -1,0 +1,4 @@
+server_name: server_B
+environment: staging
+memory_limit: 2048
+region: taipei
